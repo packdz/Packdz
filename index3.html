@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نموذج طلب المنتج - الجزائر</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1><i class="fas fa-shopping-cart"></i> نموذج طلب المنتج</h1>
+            <p class="subtitle">املأ النموذج أدناه لتأكيد طلبك</p>
+        </header>
+
+        <div class="checkout-wrapper">
+            <!-- معلومات المنتج -->
+            <div class="product-info">
+                <div class="product-card">
+                    <div class="product-image">
+                        <img src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80" alt="المنتج">
+                    </div>
+                    <div class="product-details">
+                        <h2 class="product-name">منتج متميز</h2>
+                        <p class="product-description">هذا المنتج عالي الجودة مع ضمان لمدة سنة كاملة</p>
+                        <div class="price-display">
+                            <span class="price-label">سعر المنتج:</span>
+                            <span class="product-price" id="productPrice">2500 دج</span>
+                        </div>
+                        <div class="product-features">
+                            <div class="feature">
+                                <i class="fas fa-check-circle"></i>
+                                <span>ضمان لمدة سنة</span>
+                            </div>
+                            <div class="feature">
+                                <i class="fas fa-shipping-fast"></i>
+                                <span>توصيل سريع</span>
+                            </div>
+                            <div class="feature">
+                                <i class="fas fa-headset"></i>
+                                <span>دعم فني 24/7</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- نموذج الطلب -->
+            <div class="checkout-form">
+                <form id="orderForm">
+                    <!-- معلومات الشخصية -->
+                    <section class="form-section">
+                        <h2 class="section-title"><i class="fas fa-user"></i> المعلومات الشخصية</h2>
+                        <div class="form-group">
+                            <label for="fullName">الاسم الكامل *</label>
+                            <input type="text" id="fullName" name="fullName" required placeholder="أدخل اسمك الكامل">
+                            <div class="error-message" id="nameError"></div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="phoneNumber">رقم الهاتف *</label>
+                            <input type="tel" id="phoneNumber" name="phoneNumber" required placeholder="مثال: 0551234567">
+                            <div class="error-message" id="phoneError"></div>
+                            <small class="hint">يجب أن يبدأ الرقم بـ 05 أو 06 أو 07 ويحتوي على 10 أرقام</small>
+                        </div>
+                    </section>
+
+                    <!-- الموقع -->
+                    <section class="form-section">
+                        <h2 class="section-title"><i class="fas fa-map-marker-alt"></i> العنوان</h2>
+                        <div class="form-group">
+                            <label for="state">الولاية *</label>
+                            <select id="state" name="state" required>
+                                <option value="">اختر ولاية</option>
+                                <!-- الولايات سيتم تحميلها ديناميكياً -->
+                            </select>
+                            <div class="error-message" id="stateError"></div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="municipality">البلدية *</label>
+                            <select id="municipality" name="municipality" required disabled>
+                                <option value="">اختر الولاية أولاً</option>
+                                <!-- البلديات سيتم تحميلها ديناميكياً -->
+                            </select>
+                            <div class="error-message" id="municipalityError"></div>
+                        </div>
+                    </section>
+
+                    <!-- كمية المنتج -->
+                    <section class="form-section">
+                        <h2 class="section-title"><i class="fas fa-cube"></i> كمية الطلب</h2>
+                        <div class="form-group">
+                            <label for="quantity">عدد الطلبات *</label>
+                            <div class="quantity-selector">
+                                <button type="button" class="quantity-btn" id="decreaseQty"><i class="fas fa-minus"></i></button>
+                                <input type="number" id="quantity" name="quantity" value="1" min="1" max="100" readonly>
+                                <button type="button" class="quantity-btn" id="increaseQty"><i class="fas fa-plus"></i></button>
+                            </div>
+                            <div class="error-message" id="quantityError"></div>
+                        </div>
+                    </section>
+
+                    <!-- نوع التوصيل -->
+                    <section class="form-section">
+                        <h2 class="section-title"><i class="fas fa-truck"></i> خيارات التوصيل</h2>
+                        <div class="delivery-options">
+                            <div class="delivery-option">
+                                <input type="radio" id="officeDelivery" name="delivery" value="office" checked>
+                                <label for="officeDelivery">
+                                    <span class="option-title">التوصيل إلى المكتب</span>
+                                    <span class="option-description">استلام المنتج من أقرب مكتب بريد</span>
+                                    <span class="option-price">140 دج</span>
+                                </label>
+                            </div>
+                            <div class="delivery-option">
+                                <input type="radio" id="homeDelivery" name="delivery" value="home">
+                                <label for="homeDelivery">
+                                    <span class="option-title">التوصيل إلى المنزل</span>
+                                    <span class="option-description">توصيل المنتج مباشرة إلى عنوانك</span>
+                                    <span class="option-price">350 دج</span>
+                                </label>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- ملخص الطلب -->
+                    <section class="form-section">
+                        <h2 class="section-title"><i class="fas fa-receipt"></i> ملخص الطلب</h2>
+                        <div class="order-summary">
+                            <div class="summary-item">
+                                <span>سعر المنتج:</span>
+                                <span id="productSubtotal">2500 دج</span>
+                            </div>
+                            <div class="summary-item">
+                                <span>الكمية:</span>
+                                <span id="quantitySummary">1</span>
+                            </div>
+                            <div class="summary-item">
+                                <span>تكلفة التوصيل:</span>
+                                <span id="deliveryCost">140 دج</span>
+                            </div>
+                            <div class="summary-divider"></div>
+                            <div class="summary-total">
+                                <span>السعر الإجمالي:</span>
+                                <span id="totalPrice">2640 دج</span>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- زر التأكيد -->
+                    <div class="form-actions">
+                        <button type="submit" class="submit-btn" id="submitBtn">
+                            <i class="fas fa-check-circle"></i> تأكيد الطلب
+                        </button>
+                        <button type="button" class="reset-btn" id="resetBtn">
+                            <i class="fas fa-redo"></i> إعادة تعيين
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <footer class="footer">
+            <p>جميع الحقوق محفوظة &copy; 2023 - نموذج طلب منتج</p>
+            <p>تم التطوير باستخدام HTML, CSS و JavaScript</p>
+        </footer>
+    </div>
+
+    <!-- نافذة عرض بيانات JSON -->
+    <div class="json-modal" id="jsonModal">
+        <div class="json-modal-content">
+            <div class="json-modal-header">
+                <h3><i class="fas fa-code"></i> بيانات الطلب (JSON)</h3>
+                <button type="button" class="close-modal" id="closeModal">&times;</button>
+            </div>
+            <div class="json-modal-body">
+                <pre id="jsonOutput"></pre>
+            </div>
+            <div class="json-modal-footer">
+                <button type="button" class="copy-btn" id="copyJsonBtn">
+                    <i class="fas fa-copy"></i> نسخ JSON
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
