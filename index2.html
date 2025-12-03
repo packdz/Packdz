@@ -10,6 +10,35 @@
   <meta name="robots" content="index, follow">
   <link rel="canonical" href="https://packdz.github.io/packdz">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "Pack Dz",
+  "url": "https://packdz.github.io/packdz/",
+  "logo": "https://packdz.github.io/packdz/images/logo.png"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "الرئيسية",
+      "item": "https://packdz.github.io/packdz/"
+    },
+    {
+      "@type": "ListItem", 
+      "position": 2,
+      "name": "عروض Packs متنوعة",
+      "item": "https://packdz.github.io/packdz/#products"
+    }
+  ]
+}
+</script>
   <style>
     :root {
       --primary: #6a5af9;
@@ -825,72 +854,35 @@
 
   <script>
     document.addEventListener('DOMContentLoaded', function() {
+      loadProductsFromJSON();
       initSearch();
-      displaySampleProducts();
     });
 
-    function displaySampleProducts() {
-      const productsContainer = document.getElementById('products-container');
-      productsContainer.innerHTML = '';
-      
-      const sampleProducts = [
-        {
-          id: 1,
-          title: "Pack أدوات التجميل الأساسية",
-          description: "باقة متكاملة من أدوات التجميل الأساسية لمكياج يومي مثالي، تشمل أساس، أحمر شفاه، ماسكارا، ومستحضرات عناية.",
-          price: "2500",
-          category: "beauty",
-          image: "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60",
-          inStock: true
-        },
-        {
-          id: 2,
-          title: "Pack أدوات المطبخ الذكية",
-          description: "مجموعة من أحدث أدوات المطبخ الذكية التي تسهل عملية الطهي وتوفر الوقت والجهد في تحضير الوجبات.",
-          price: "3200",
-          category: "kitchen",
-          image: "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60",
-          inStock: true
-        },
-        {
-          id: 3,
-          title: "Pack إكسسوارات الجوال الحديثة",
-          description: "مجموعة من الإكسسوارات الحديثة للجوال تشمل سماعات، شواحن سريعة، حافظات، وأسلاك توصيل.",
-          price: "1800",
-          category: "electronics",
-          image: "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60",
-          inStock: true
-        },
-        {
-          id: 4,
-          title: "Pack مستلزمات التنظيف المنزلية",
-          description: "باقة شاملة لمستلزمات التنظيف المنزلية تشمل مواد تنظيف للأرضيات، الأسطح، النوافذ، والمفروشات.",
-          price: "1500",
-          category: "home",
-          image: "https://images.unsplash.com/photo-1581094794329-c8112a89af12?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60",
-          inStock: true
-        }
-      ];
-      
-      sampleProducts.forEach(product => {
-        const productElement = createProductElement(product);
-        productsContainer.appendChild(productElement);
-      });
-      
-      updateProductsCount(sampleProducts.length);
-      generateCategoriesFromProducts(sampleProducts);
-      initCategories();
+    async function loadProductsFromJSON() {
+      try {
+        const response = await fetch('products.json');
+        const data = await response.json();
+        
+        updateProductsCount(data.products.length);
+        generateCategoriesFromProducts(data.products);
+        initCategories();
+        displayProducts(data.products);
+        
+      } catch (error) {
+        console.error('خطأ في تحميل المنتجات:', error);
+        showErrorLoadingProducts();
+      }
     }
 
     function generateCategoriesFromProducts(products) {
       const uniqueCategories = [...new Set(products.map(product => product.category))];
       
-      window.categories = [
+      categories = [
         { id: "all", name: "جميع المنتجات" }
       ];
       
       uniqueCategories.forEach(category => {
-        window.categories.push({
+        categories.push({
           id: category,
           name: translateCategory(category)
         });
@@ -915,11 +907,9 @@
 
     function initCategories() {
       const categoriesFilter = document.getElementById('categories-filter');
-      if (!categoriesFilter) return;
-      
       categoriesFilter.innerHTML = '';
       
-      window.categories.forEach(category => {
+      categories.forEach(category => {
         const categoryBtn = document.createElement('button');
         categoryBtn.className = category.id === 'all' ? 'category-btn active' : 'category-btn';
         categoryBtn.setAttribute('data-category', category.id);
@@ -949,20 +939,73 @@
         btn.classList.remove('active');
       });
       
-      const activeBtn = document.querySelector(`.category-btn[data-category="${categoryId}"]`);
-      if (activeBtn) {
-        activeBtn.classList.add('active');
-      }
-      
+      document.querySelector(`.category-btn[data-category="${categoryId}"]`).classList.add('active');
       filterProductsByCategory(categoryId);
     }
 
     function updateProductsCount(count) {
       const countElement = document.getElementById('products-count');
-      if (countElement) {
-        countElement.textContent = `عرض ${count} منتج${count !== 1 ? 'ات' : ''}`;
-        countElement.style.display = 'block';
-      }
+      countElement.textContent = `عرض ${count} منتج${count !== 1 ? 'ات' : ''}`;
+      countElement.style.display = 'block';
+    }
+
+    function displayProducts(products) {
+      const productsContainer = document.getElementById('products-container');
+      productsContainer.innerHTML = '';
+      
+      const productStructuredData = {
+        "@context": "https://schema.org",
+        "@type": "ItemList",
+        "itemListElement": []
+      };
+      
+      products.forEach((product, index) => {
+        const productElement = createProductElement(product);
+        productsContainer.appendChild(productElement);
+        
+        productStructuredData.itemListElement.push({
+          "@type": "ListItem",
+          "position": index + 1,
+          "item": {
+            "@type": "Product",
+            "name": product.title,
+            "description": product.description,
+            "image": product.image.startsWith('http') ? product.image : `https://packdz.github.io/packdz/${product.image}`,
+            "sku": product.id,
+            "offers": {
+              "@type": "Offer",
+              "price": product.price,
+              "priceCurrency": "DZD",
+              "availability": product.inStock ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+              "priceValidUntil": "2025-12-31"
+            },
+            "brand": {
+              "@type": "Brand",
+              "name": "Pack Dz"
+            }
+          }
+        });
+      });
+      
+      addStructuredData(productStructuredData);
+      initCategories();
+    }
+
+    function addStructuredData(data) {
+      const existingScripts = document.querySelectorAll('script[type="application/ld+json"]');
+      existingScripts.forEach(script => {
+        try {
+          const content = JSON.parse(script.textContent);
+          if (content["@type"] === "ItemList") {
+            script.remove();
+          }
+        } catch (e) {}
+      });
+      
+      const script = document.createElement('script');
+      script.type = 'application/ld+json';
+      script.textContent = JSON.stringify(data);
+      document.head.appendChild(script);
     }
 
     function createProductElement(product) {
@@ -976,11 +1019,18 @@
       
       const productLink = `product-${product.id}.html`;
       
-      const imageUrl = product.image;
+      const imageUrl = product.image.startsWith('http') ? 
+        product.image : product.image;
       
+      const stockStatus = product.inStock === true ? "متوفر" : 
+        product.inStock === false ? "غير متوفر" : "تحقق من التوفر";
+      const stockClass = product.inStock === true ? "in-stock" : 
+        product.inStock === false ? "out-of-stock" : "check-availability";
+
       productDiv.innerHTML = `
+        ${product.inStock === false ? `<div class="product-badge ${stockClass}">${stockStatus}</div>` : ''}
         <div class="product-img">
-          <img src="${imageUrl}" alt="${product.title}" 
+          <img src="${imageUrl}" alt="${product.imageAlt || product.title}" 
                onerror="this.src='https://via.placeholder.com/300x300/6a5af9/ffffff?text=Pack+Dz'"
                loading="lazy">
         </div>
@@ -1023,11 +1073,23 @@
     }
 
     function updateVisibleProductsCount(count, categoryId) {
-      const categoryName = window.categories?.find(cat => cat.id === categoryId)?.name || categoryId;
+      const categoryName = categories.find(cat => cat.id === categoryId)?.name || categoryId;
       const countElement = document.getElementById('products-count');
-      if (countElement) {
-        countElement.textContent = `عرض ${count} منتج${count !== 1 ? 'ات' : ''} ${categoryId !== 'all' ? `في ${categoryName}` : ''}`;
-      }
+      countElement.textContent = `عرض ${count} منتج${count !== 1 ? 'ات' : ''} ${categoryId !== 'all' ? `في ${categoryName}` : ''}`;
+    }
+
+    function showErrorLoadingProducts() {
+      const productsContainer = document.getElementById('products-container');
+      productsContainer.innerHTML = `
+        <div style="grid-column: 1 / -1; text-align: center; padding: 50px;">
+          <i class="fas fa-exclamation-triangle" style="font-size: 48px; color: #ff6b6b; margin-bottom: 20px;"></i>
+          <h3 style="color: var(--dark); margin-bottom: 15px;">حدث خطأ في تحميل المنتجات</h3>
+          <p style="color: var(--gray); margin-bottom: 20px;">تعذر تحميل المنتجات من قاعدة البيانات. الرجاء المحاولة مرة أخرى لاحقاً.</p>
+          <button onclick="loadProductsFromJSON()" class="btn btn-secondary">
+            <i class="fas fa-redo"></i> إعادة المحاولة
+          </button>
+        </div>
+      `;
     }
 
     function addToFavorites(productId) {
@@ -1046,8 +1108,6 @@
       const searchBox = document.getElementById('search-box');
       const searchInput = document.getElementById('search-input');
       const searchBtn = document.getElementById('search-btn');
-
-      if (!searchToggle || !searchBox || !searchInput || !searchBtn) return;
 
       searchToggle.addEventListener('click', function(e) {
         e.stopPropagation();
@@ -1161,9 +1221,9 @@
       }
       
       window.clearSearch = function() {
-        if (searchInput) searchInput.value = '';
+        searchInput.value = '';
         resetSearch();
-        if (searchBox) searchBox.classList.remove('active');
+        searchBox.classList.remove('active');
         setActiveCategory('all');
       };
     }
