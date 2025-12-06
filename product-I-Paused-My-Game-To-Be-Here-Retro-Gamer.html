@@ -1520,13 +1520,13 @@
 
 <script>
   // دالة لحفظ الطلب في Google Sheets
- // دالة محسنة لحفظ الطلب في Google Sheets
+  // في دالة saveOrderToGoogleSheets في generate-pages.js
 async function saveOrderToGoogleSheets(orderData) {
   try {
-    // استخدم رابط Cloudflare Worker هنا
-    const CLOUDFLARE_WORKER_URL = 'https://billowing-rain-004d.mohammedsid43.workers.dev';
+    // استخدم رابط Cloudflare Worker بدلاً من Google Script مباشرة
+    const WEB_APP_URL = 'https://billowing-rain-004d.mohammedsid43.workers.dev/order';
     
-    const response = await fetch(CLOUDFLARE_WORKER_URL, {
+    const response = await fetch(WEB_APP_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -1535,108 +1535,42 @@ async function saveOrderToGoogleSheets(orderData) {
     });
     
     const result = await response.json();
-    
-    if (result.success) {
-      console.log('Order saved successfully:', result);
-      return true;
-    } else {
-      console.error('Failed to save order:', result);
-      
-      // حفظ محلي كنسخة احتياطية
-      saveOrderLocally(orderData);
-      return false;
-    }
+    return result.success;
     
   } catch (error) {
     console.error('Error saving order:', error);
-    
     // حفظ محلي كنسخة احتياطية
-    saveOrderLocally(orderData);
-    return false;
-  }
-}
-
-// دالة للحفظ المحلي
-function saveOrderLocally(orderData) {
-  try {
     const pendingOrders = JSON.parse(localStorage.getItem('pendingOrders') || '[]');
-    const orderWithMeta = {
-      ...orderData,
-      timestamp: new Date().toISOString(),
-      id: `local-${Date.now()}`,
-      retries: 0,
-      maxRetries: 5
-    };
-    
-    pendingOrders.push(orderWithMeta);
-    localStorage.setItem('pendingOrders', JSON.stringify(pendingOrders));
-    
-    // محاولة إعادة الإرسال تلقائياً
-    setTimeout(retryPendingOrders, 30000);
-    
-    return true;
-  } catch (error) {
-    console.error('Error saving locally:', error);
+    pendingOrders.push(orderData);
+    localStorage.setItem('pendingOrders', JSON.stringify(savedOrders));
     return false;
   }
 }
-
-// محاولة إرسال الطلبات المحفوظة
-async function retryPendingOrders() {
-  const pendingOrders = JSON.parse(localStorage.getItem('pendingOrders') || '[]');
   
-  if (pendingOrders.length === 0) return;
-  
-  console.log(`Retrying ${pendingOrders.length} pending orders...`);
-  
-  const successful = [];
-  
-  for (let i = 0; i < pendingOrders.length; i++) {
-    const order = pendingOrders[i];
+  // محاولة إرسال الطلبات المعلقة
+  async function retryPendingOrders() {
+    const pendingOrders = JSON.parse(localStorage.getItem('pendingOrders') || '[]');
     
-    if (order.retries >= order.maxRetries) {
-      console.log(`Order ${order.id} exceeded max retries`);
-      continue;
-    }
-    
-    try {
-      const CLOUDFLARE_WORKER_URL = 'https://billowing-rain-004d.mohammedsid43.workers.dev';
-      const response = await fetch(CLOUDFLARE_WORKER_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(order)
-      });
+    if (pendingOrders.length > 0) {
+      console.log('Retrying', pendingOrders.length, 'pending orders...');
       
-      const result = await response.json();
-      
-      if (result.success) {
-        console.log(`Successfully sent pending order: ${order.id}`);
-        successful.push(i);
-        
-        // إشعار المستخدم (اختياري)
-        if ('Notification' in window && Notification.permission === 'granted') {
-          new Notification('تم إرسال طلبك المخزن', {
-            body: `تم إرسال طلب ${order.productTitle} بنجاح`
-          });
+      for (let i = 0; i < pendingOrders.length; i++) {
+        try {
+          await saveOrderToGoogleSheets(pendingOrders[i]);
+          pendingOrders.splice(i, 1);
+          i--;
+        } catch (error) {
+          pendingOrders[i].retryCount++;
+          if (pendingOrders[i].retryCount > 3) {
+            pendingOrders.splice(i, 1);
+            i--;
+          }
         }
-      } else {
-        order.retries++;
       }
-    } catch (error) {
-      order.retries++;
-      console.error(`Retry failed for order ${order.id}:`, error);
+      
+      localStorage.setItem('pendingOrders', JSON.stringify(pendingOrders));
     }
   }
-  
-  // إزالة الطلبات الناجحة
-  successful.reverse().forEach(index => {
-    pendingOrders.splice(index, 1);
-  });
-  
-  localStorage.setItem('pendingOrders', JSON.stringify(pendingOrders));
-}
   
   // تشغيل محاولة الإرسال عند تحميل الصفحة
   window.addEventListener('load', retryPendingOrders);
