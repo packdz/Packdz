@@ -1520,38 +1520,44 @@
 
 <script>
   // دالة لحفظ الطلب في Google Sheets
-  async function saveOrderToGoogleSheets(orderData) {
-    try {
-      // استبدل هذا الرابط برابط Web App الخاص بك من Google Apps Script
-      const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyKkxUjz1Sy_JxIVxqy4MBge0Ci3zf-Z6vRjZSdVsnCvMP1m3Wvv5sKYb-jwQTQXW4/exec';
-      
-      const response = await fetch(WEB_APP_URL, {
-        method: 'POST',
-        mode: 'no-cors', // لأن Google Apps Script يتطلب no-cors
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(orderData)
-      });
-      
-      // نظرًا لأننا نستخدم no-cors، لا يمكننا قراءة الرد
-      // ولكن الطلب سيتم إرساله بنجاح
-      return true;
-    } catch (error) {
-      console.error('Error saving order:', error);
-      
-      // في حالة الفشل، احفظ البيانات محلياً (كحل احتياطي)
-      const savedOrders = JSON.parse(localStorage.getItem('pendingOrders') || '[]');
-      savedOrders.push({
-        ...orderData,
-        timestamp: new Date().toISOString(),
-        retryCount: 0
-      });
-      localStorage.setItem('pendingOrders', JSON.stringify(savedOrders));
-      
-      return false;
-    }
+ // دالة محسنة لحفظ الطلب في Google Sheets
+async function saveOrderToGoogleSheets(orderData) {
+  try {
+    // استبدل هذا الرابط برابط Web App الخاص بك
+    const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyKkxUjz1Sy_JxIVxqy4MBge0Ci3zf-Z6vRjZSdVsnCvMP1m3Wvv5sKYb-jwQTQXW4/exec';
+    
+    console.log('📤 إرسال بيانات الطلب:', orderData);
+    
+    // استخدام fetch مع no-cors (مطلوب لـ Google Apps Script)
+    const response = await fetch(WEB_APP_URL, {
+      method: 'POST',
+      mode: 'no-cors', // مهم: لا يمكن قراءة الرد مع no-cors
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(orderData)
+    });
+    
+    console.log('✅ تم إرسال الطلب إلى Google Sheets');
+    
+    // مع no-cors، لا يمكننا قراءة الرد لكن الطلب سيصل
+    return true;
+    
+  } catch (error) {
+    console.error('❌ خطأ في الإرسال:', error);
+    
+    // حفظ محلي للطلبات الفاشلة
+    const failedOrders = JSON.parse(localStorage.getItem('failedOrders') || '[]');
+    failedOrders.push({
+      ...orderData,
+      failedAt: new Date().toISOString(),
+      retryCount: 0
+    });
+    localStorage.setItem('failedOrders', JSON.stringify(failedOrders));
+    
+    return false;
   }
+}
   
   // محاولة إرسال الطلبات المعلقة
   async function retryPendingOrders() {
