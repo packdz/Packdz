@@ -868,6 +868,19 @@
         </div>
 </div>
 
+        <div class="video-section" style="margin-top: 20px;">
+          <h3 style="margin-bottom: 15px; color: var(--dark); font-size: 18px;">
+            <i class="fas fa-video"></i> فيديو للمنتج
+          </h3>
+          <div class="video-container" style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 10px;">
+            <iframe 
+              src="https://www.youtube.com/embed/iKR9yZ4MQUw" 
+              style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none;"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+              allowfullscreen>
+            </iframe>
+          </div>
+        </div>
         </div>
         
         <div class="product-details">
@@ -2008,5 +2021,81 @@ document.getElementById("orderForm").addEventListener("submit", function(e) {
     phoneInput.value = phone;
 });
 </script>
+<script>
+// ===============================
+// حماية تكرار الطلب باستخدام User Agent
+// ===============================
+
+const ORDER_COOLDOWN = 5 * 60 * 1000; // 5 دقائق
+const CLEANUP_TIME = 24 * 60 * 60 * 1000; // 24 ساعة
+
+// بصمة المتصفح
+function getBrowserFingerprint() {
+    return navigator.userAgent + "|" + navigator.language + "|" + screen.width + "x" + screen.height;
+}
+
+// تنظيف السجلات القديمة
+function cleanupOrderHistory() {
+    let data = JSON.parse(localStorage.getItem("orderProtector") || "{}");
+    const now = Date.now();
+
+    for (let key in data) {
+        if (now - data[key] > CLEANUP_TIME) {
+            delete data[key];
+        }
+    }
+
+    localStorage.setItem("orderProtector", JSON.stringify(data));
+}
+
+// التحقق
+function canPlaceOrder() {
+    cleanupOrderHistory();
+
+    const fingerprint = getBrowserFingerprint();
+    let data = JSON.parse(localStorage.getItem("orderProtector") || "{}");
+
+    const lastTime = data[fingerprint];
+    if (!lastTime) return true;
+
+    const elapsed = Date.now() - lastTime;
+    if (elapsed >= ORDER_COOLDOWN) return true;
+
+    return ORDER_COOLDOWN - elapsed;
+}
+
+// حفظ الوقت
+function saveOrderTimestamp() {
+    const fingerprint = getBrowserFingerprint();
+    let data = JSON.parse(localStorage.getItem("orderProtector") || "{}");
+    data[fingerprint] = Date.now();
+    localStorage.setItem("orderProtector", JSON.stringify(data));
+}
+
+
+// ------------- 🔥 إيقاف الإرسال تماماً 🔥 -------------
+document.getElementById("orderForm").addEventListener("submit", function(e) {
+
+    const result = canPlaceOrder();
+
+    if (result !== true) {
+        e.preventDefault();      // منع إرسال الفورم
+        e.stopImmediatePropagation(); // منع أي سكربت آخر من العمل
+
+        const minutes = Math.floor(result / 60000);
+        const seconds = Math.floor((result % 60000) / 1000);
+
+        alert(
+            `⛔ تنبيه:\nلقد قمت بإرسال طلب مؤخرًا.\nيرجى الانتظار ${minutes} دقيقة و ${seconds} ثانية قبل محاولة جديدة.`
+        );
+
+        return false; // إيقاف أي عملية أخرى
+    }
+
+    // إذا مسموح → احفظ وقت الطلب
+    saveOrderTimestamp();
+});
+</script>
+
 </body>
 </html>
